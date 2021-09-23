@@ -11,9 +11,9 @@ const Company = require("../models/company");
 
 const companyNewSchema = require("../schemas/companyNew.json");
 const companyUpdateSchema = require("../schemas/companyUpdate.json");
+const companySearchSchema = require("../schemas/companySearch.json");
 
 const router = new express.Router();
-
 
 /** POST / { company } =>  { company }
  *
@@ -28,7 +28,7 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
   try {
     const validator = jsonschema.validate(req.body, companyNewSchema);
     if (!validator.valid) {
-      const errs = validator.errors.map(e => e.stack);
+      const errs = validator.errors.map((e) => e.stack);
       throw new BadRequestError(errs);
     }
 
@@ -51,8 +51,21 @@ router.post("/", ensureLoggedIn, async function (req, res, next) {
  */
 
 router.get("/", async function (req, res, next) {
+  const searchFilters = req.query;
+
+  // if received min or max Employees search queries, convert to integers
+  if (searchFilters.minEmployees !== undefined) searchFilters.minEmployees = +searchFilters.minEmployees;
+  if (searchFilters.maxEmployees !== undefined) searchFilters.maxEmployees = +searchFilters.maxEmployees;
+
   try {
-    const companies = await Company.findAll();
+    // Compare req.query to Json Schema to ensure it fits the criteria and doesn't allow additional search queries
+    const validator = jsonschema.validate(searchFilters, companySearchSchema);
+    if (!validator.valid) {
+      const errs = validator.errors.map((e) => e.stack);
+      throw new BadRequestError(errs);
+    }
+
+    const companies = await Company.findAll(searchFilters);
     return res.json({ companies });
   } catch (err) {
     return next(err);
@@ -91,7 +104,7 @@ router.patch("/:handle", ensureLoggedIn, async function (req, res, next) {
   try {
     const validator = jsonschema.validate(req.body, companyUpdateSchema);
     if (!validator.valid) {
-      const errs = validator.errors.map(e => e.stack);
+      const errs = validator.errors.map((e) => e.stack);
       throw new BadRequestError(errs);
     }
 
@@ -115,6 +128,5 @@ router.delete("/:handle", ensureLoggedIn, async function (req, res, next) {
     return next(err);
   }
 });
-
 
 module.exports = router;
