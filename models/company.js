@@ -86,7 +86,7 @@ class Company {
     return companiesRes.rows;
   }
 
-  /** Given a company handle, return data about company.
+  /** Given a company handle, return data about company, and any jobs available for that company.
    *
    * Returns { handle, name, description, numEmployees, logoUrl, jobs }
    *   where jobs is [{ id, title, salary, equity, companyHandle }, ...]
@@ -109,6 +109,16 @@ class Company {
     const company = companyRes.rows[0];
 
     if (!company) throw new NotFoundError(`No company: ${handle}`);
+
+    const jobsRes = await db.query(
+      `SELECT id, title, salary, equity
+        FROM jobs
+        WHERE company_handle = $1
+        ORDER BY id`,
+      [handle]
+    );
+
+    company.jobs = jobsRes.rows;
 
     return company;
   }

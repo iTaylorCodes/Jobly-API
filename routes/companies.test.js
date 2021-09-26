@@ -5,7 +5,7 @@ const request = require("supertest");
 const db = require("../db");
 const app = require("../app");
 
-const { commonBeforeAll, commonBeforeEach, commonAfterEach, commonAfterAll, u1Token, adminToken } = require("./_testCommon");
+const { commonBeforeAll, commonBeforeEach, commonAfterEach, commonAfterAll, u1Token, adminToken, testJobs } = require("./_testCommon");
 
 beforeAll(commonBeforeAll);
 beforeEach(commonBeforeEach);
@@ -164,6 +164,11 @@ describe("GET /companies/:handle", function () {
         description: "Desc1",
         numEmployees: 1,
         logoUrl: "http://c1.img",
+        jobs: [
+          { id: testJobs[0], title: "J1", salary: 5, equity: "0.5" },
+          { id: testJobs[1], title: "J2", salary: 6, equity: "0.6" },
+          { id: testJobs[2], title: "J3", salary: 7, equity: "0.7" },
+        ],
       },
     });
   });
@@ -177,6 +182,7 @@ describe("GET /companies/:handle", function () {
         description: "Desc2",
         numEmployees: 2,
         logoUrl: "http://c2.img",
+        jobs: [],
       },
     });
   });
