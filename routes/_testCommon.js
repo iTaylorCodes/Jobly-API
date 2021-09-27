@@ -61,9 +61,32 @@ async function commonBeforeAll() {
     isAdmin: false,
   });
 
-  testJobs[0] = (await Job.create({ title: "J1", salary: 5, equity: "0.5", companyHandle: "c1" })).id;
-  testJobs[1] = (await Job.create({ title: "J2", salary: 6, equity: "0.6", companyHandle: "c1" })).id;
-  testJobs[2] = (await Job.create({ title: "J3", salary: 7, equity: "0.7", companyHandle: "c1" })).id;
+  const testJob1 = await Job.create({
+    title: "J1",
+    salary: 5,
+    equity: "0.5",
+    companyHandle: "c1",
+  });
+
+  const testJob2 = await Job.create({
+    title: "J2",
+    salary: 6,
+    equity: "0.6",
+    companyHandle: "c1",
+  });
+
+  const testJob3 = await Job.create({
+    title: "J3",
+    salary: 7,
+    equity: "0.7",
+    companyHandle: "c1",
+  });
+
+  testJobs[0] = testJob1.id;
+  testJobs[1] = testJob2.id;
+  testJobs[2] = testJob3.id;
+
+  await User.apply("u1", testJobs[1]);
 }
 
 async function commonBeforeEach() {

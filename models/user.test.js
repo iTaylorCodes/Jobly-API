@@ -1,18 +1,9 @@
 "use strict";
 
-const {
-  NotFoundError,
-  BadRequestError,
-  UnauthorizedError,
-} = require("../expressError");
+const { NotFoundError, BadRequestError, UnauthorizedError } = require("../expressError");
 const db = require("../db.js");
 const User = require("./user.js");
-const {
-  commonBeforeAll,
-  commonBeforeEach,
-  commonAfterEach,
-  commonAfterAll,
-} = require("./_testCommon");
+const { commonBeforeAll, commonBeforeEach, commonAfterEach, commonAfterAll, testJobs } = require("./_testCommon");
 
 beforeAll(commonBeforeAll);
 beforeEach(commonBeforeEach);
@@ -140,6 +131,7 @@ describe("get", function () {
       lastName: "U1L",
       email: "u1@email.com",
       isAdmin: false,
+      applications: [testJobs[1]],
     });
   });
 
@@ -214,14 +206,47 @@ describe("update", function () {
 describe("remove", function () {
   test("works", async function () {
     await User.remove("u1");
-    const res = await db.query(
-        "SELECT * FROM users WHERE username='u1'");
+    const res = await db.query("SELECT * FROM users WHERE username='u1'");
     expect(res.rows.length).toEqual(0);
   });
 
   test("not found if no such user", async function () {
     try {
       await User.remove("nope");
+      fail();
+    } catch (err) {
+      expect(err instanceof NotFoundError).toBeTruthy();
+    }
+  });
+});
+
+/************************************** apply */
+
+describe("apply", () => {
+  test("works", async () => {
+    await User.apply("u1", testJobs[0]);
+
+    const result = await db.query(`SELECT * FROM applications WHERE job_id = $1`, [testJobs[0]]);
+    expect(result.rows).toEqual([
+      {
+        job_id: testJobs[0],
+        username: "u1",
+      },
+    ]);
+  });
+
+  test("not found if no such user", async () => {
+    try {
+      await User.apply("noUser", testJobs[0], "applied");
+      fail();
+    } catch (err) {
+      expect(err instanceof NotFoundError).toBeTruthy();
+    }
+  });
+
+  test("not found if no such job", async () => {
+    try {
+      await User.apply("u1", 0, "applied");
       fail();
     } catch (err) {
       expect(err instanceof NotFoundError).toBeTruthy();
